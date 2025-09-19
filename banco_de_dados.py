@@ -1,14 +1,51 @@
 # banco_de_dados.py
 import sqlite3
+import os
+
+def get_caminho_banco_dados():
+    """
+    Verifica se existe uma pasta para a aplicação em AppData, a cria se necessário,
+    e retorna o caminho completo para o arquivo do banco de dados.
+    """
+    # Nome da pasta que será criada em AppData\Roaming (seja específico)
+    NOME_DA_PASTA_APP = "SistemaVotacaoInterna"
+    NOME_DO_BANCO = "votacao.db"
+    
+    # Pega o caminho para a pasta AppData\Roaming do usuário atual
+    caminho_appdata = os.getenv('APPDATA')
+    
+    # Se o caminho não for encontrado (caso de S.O. não-Windows), usa a pasta home
+    if not caminho_appdata:
+        caminho_appdata = os.path.expanduser("~")
+
+    # Monta o caminho completo para a pasta da sua aplicação
+    caminho_da_app = os.path.join(caminho_appdata, NOME_DA_PASTA_APP)
+    
+    # Cria a pasta se ela ainda não existir.
+    os.makedirs(caminho_da_app, exist_ok=True)
+    
+    # Retorna o caminho completo onde o banco de dados deve estar
+    return os.path.join(caminho_da_app, NOME_DO_BANCO)
 
 def conectar():
-    """Conecta ao banco de dados e retorna a conexão e o cursor."""
-    conn = sqlite3.connect("votacao.db")
-    cursor = conn.cursor()
-    return conn, cursor
+    """
+    Conecta ao banco de dados no caminho correto e retorna a conexão e o cursor.
+    Cria o arquivo de banco de dados se ele não existir.
+    """
+    caminho_banco = get_caminho_banco_dados()
+    try:
+        conn = sqlite3.connect(caminho_banco)
+        cursor = conn.cursor()
+        print(f"Banco de dados conectado em: {caminho_banco}")
+        return conn, cursor
+    except sqlite3.Error as e:
+        print(f"Erro fatal ao conectar ao banco de dados: {e}")
+        # Em uma aplicação real, você poderia mostrar um messagebox de erro aqui e fechar o app
+        return None, None
 
 def criar_tabelas(cursor):
     """Cria as tabelas do banco de dados se elas não existirem."""
+    if not cursor: return
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS votos (
@@ -34,6 +71,8 @@ def criar_tabelas(cursor):
         )
         """
     )
+
+# ... (o resto do arquivo banco_de_dados.py continua exatamente igual) ...
 
 def contar_colaboradores(cursor):
     """Conta o número de colaboradores no banco."""
@@ -91,11 +130,3 @@ def inserir_votos(cursor, conn, registros):
     conn.commit()
 
 def buscar_ranking_mensal(cursor, ciclo, mes):
-    """Busca os dados para o ranking mensal."""
-    cursor.execute("SELECT votado, SUM(total) as pontos FROM votos WHERE ciclo_ano=? AND mes=? GROUP BY votado ORDER BY pontos DESC", (ciclo, mes))
-    return cursor.fetchall()
-
-def buscar_ranking_acumulado(cursor, ciclo):
-    """Busca os dados para o ranking acumulado."""
-    cursor.execute("SELECT votado, SUM(total) as pontos FROM votos WHERE ciclo_ano=? GROUP BY votado ORDER BY pontos DESC", (ciclo,))
-    return cursor.fetchall()

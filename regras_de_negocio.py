@@ -7,9 +7,20 @@ import hashlib
 # CONSTANTES E CONFIGURAÇÕES
 # ============================
 USUARIOS_PADRAO = [
-    "Thiago Henrique", "Bruno Cassini", "Giovani Galindo", "Rafael Grecco", "Thainá Mendes",
-    "Ricardo Toledo", "Lucas Lima", "Julio Cesar", "André Miranda", "Rafael Jesuíno",
-    "Alexandre Silva", "Eliezer"
+    
+    "Thiago Henrique",
+    "Bruno Cassini",
+    "Giovani Galindo",
+    "Rafael Grecco",
+    "Ricardo Toledo",
+    "Lucas Lima",
+    "Julio Cesar",
+    "André Miranda",
+    "Rafael Jesuíno",
+    "Alexandre Silva",
+    "Eliezer Domingos",
+    "José Fernando",
+    "Claudia Silvia"
 ]
 CRITERIOS = [
     ("comunicacao", "Comunicação"), ("trabalho_equipe", "Trabalho em equipe e humildade"),
