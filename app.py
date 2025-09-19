@@ -10,18 +10,20 @@ import hashlib
 # CONFIGURAÇÕES
 # ============================
 USUARIOS = [
+    
     "Thiago Henrique",
     "Bruno Cassini",
     "Giovani Galindo",
     "Rafael Grecco",
-    "Thainá Mendes",
     "Ricardo Toledo",
     "Lucas Lima",
     "Julio Cesar",
     "André Miranda",
     "Rafael Jesuíno",
     "Alexandre Silva",
-    "Eliezer"
+    "Eliezer Domingos",
+    "José Fernando",
+    "Claudia Silvia"
 ]
 
 CRITERIOS = [
@@ -32,8 +34,8 @@ CRITERIOS = [
     ("comprometimento", "Comprometimento e postura profissional"),
 ]
 
-PONTOS_MIN = 275
-PONTOS_MAX = 550
+PONTOS_MIN = 300
+PONTOS_MAX = 600
 ADMIN_SENHA = "admin123"
 ANON_SALT = "um_salt_bem_grande_e_aleatorio_2025"
 
@@ -196,6 +198,11 @@ def salvar_votos():
 def abrir_tela_votacao():
     global entradas
     limpar_frames()
+
+    # ALTERAÇÃO: Limpa o frame de votação antes de recriar os widgets para evitar duplicação.
+    for widget in votacao_frame.winfo_children():
+        widget.destroy()
+
     entradas = {}
     
     votacao_frame.pack(fill="both", expand=True, padx=20, pady=20)
@@ -248,19 +255,25 @@ def abrir_tela_votacao():
             entradas[nome][key] = sp
             
     # --- Botão de Envio ---
-    botoes = ttk.Frame(votacao_frame)
-    botoes.pack(pady=20)
-    ttk.Button(botoes, text="Enviar Votos", command=salvar_votos, bootstyle=SUCCESS, padding=(20, 10)).pack()
+    botoes_frame = ttk.Frame(votacao_frame)
+    botoes_frame.pack(pady=20)
+    ttk.Button(botoes_frame, text="Enviar Votos", command=salvar_votos, bootstyle=SUCCESS, padding=(20, 10)).pack(side='left', padx=5)
+    ttk.Button(botoes_frame, text="Voltar para Login", command=voltar_para_login, style='Hover.TButton', padding=(20, 10)).pack(side='left', padx=5)
 
     canvas.pack(side="left", fill="both", expand=True)
     scroll.pack(side="right", fill="y")
-
+    
 
 # ============================
 # ADMIN
 # ============================
 def abrir_tela_admin():
     limpar_frames()
+
+    # ALTERAÇÃO: Limpa o frame de admin antes de recriar os widgets para evitar duplicação.
+    for widget in admin_view_frame.winfo_children():
+        widget.destroy()
+
     admin_view_frame.pack(fill="both", expand=True, padx=16, pady=16)
 
     agora = datetime.now()
@@ -439,16 +452,16 @@ def voltar_para_login():
 # ============================
 root = ttk.Window(themename="darkly")
 root.title("Sistema de Votação Interna")
-root.geometry("1100x650")
+root.geometry("1100x700") # Aumentei um pouco a altura para melhor acomodação
 
 # Criando um estilo para o botão de admin na tela de admin
 style = ttk.Style()
 style.configure('Hover.TButton',
-                background='#212121',
-                foreground='white',
-                font=('Arial', 10),
-                borderwidth=1,
-                relief="raised")
+                  background='#212121',
+                  foreground='white',
+                  font=('Arial', 10),
+                  borderwidth=1,
+                  relief="raised")
 style.map('Hover.TButton',
           background=[('active', '#424242'),
                       ('pressed', '#616161')],
@@ -456,32 +469,32 @@ style.map('Hover.TButton',
 
 # Estilo para o botão de Usuário
 style.configure('LoginUser.TButton',
-                background='#007bff',
-                # ALTERADO: Cor do texto para preto
-                foreground='black', 
-                font=('Arial', 11, 'bold'),
-                borderwidth=0,
-                relief="flat")
+                  background='#007bff',
+                  foreground='black', 
+                  font=('Arial', 11, 'bold'),
+                  borderwidth=0,
+                  relief="flat")
 style.map('LoginUser.TButton',
           background=[('active', '#0056b3'),
                       ('pressed', '#004085')],
-          # ALTERADO: Cor do texto para preto também nos outros estados
           foreground=[('active', 'black'),
                       ('pressed', 'black')],
+          # CORREÇÃO APLICADA AQUI
           focuscolor=[('!active', '#66afe9')]) 
 
 # Estilo para o botão de Admin
 style.configure('LoginAdmin.TButton',
-                background='#ffc107',
-                foreground='black',
-                font=('Arial', 11, 'bold'),
-                borderwidth=0,
-                relief="flat")
+                  background='#ffc107',
+                  foreground='black',
+                  font=('Arial', 11, 'bold'),
+                  borderwidth=0,
+                  relief="flat")
 style.map('LoginAdmin.TButton',
           background=[('active', '#e0a800'),
                       ('pressed', '#c69500')],
           foreground=[('active', 'black'),
                       ('pressed', 'black')],
+          # CORREÇÃO APLICADA AQUI
           focuscolor=[('!active', '#fd7e14')])
 
 
