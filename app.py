@@ -5,25 +5,38 @@ import sqlite3
 from datetime import datetime
 import csv
 import hashlib
+import os # << ALTERAÇÃO: Importado para lidar com o sistema operacional
+from pathlib import Path # << ALTERAÇÃO: Importado para lidar com caminhos de forma moderna
+
+# ============================
+# FUNÇÃO PARA OBTER DIRETÓRIO DE DADOS
+# ============================
+# << ALTERAÇÃO: Esta função cria uma pasta para a aplicação no diretório de dados do usuário
+def get_data_dir():
+    """Retorna o caminho para o diretório de dados da aplicação, criando-o se não existir."""
+    # O nome da pasta que será criada para armazenar o banco de dados
+    app_name = "SistemaVotacaoInterna"
+    
+    # No Windows, o caminho é %APPDATA%\SistemaVotacaoInterna
+    if os.name == 'nt':
+        base_dir = Path(os.getenv('APPDATA'))
+    # Em outros sistemas (Linux, macOS), usa a pasta home do usuário
+    else:
+        base_dir = Path.home() / ".local" / "share"
+        
+    # Constrói o caminho completo e cria a pasta
+    data_dir = base_dir / app_name
+    data_dir.mkdir(parents=True, exist_ok=True)
+    return data_dir
 
 # ============================
 # CONFIGURAÇÕES
 # ============================
 USUARIOS = [
-    
-    "Thiago Henrique",
-    "Bruno Cassini",
-    "Giovani Galindo",
-    "Rafael Grecco",
-    "Ricardo Toledo",
-    "Lucas Lima",
-    "Julio Cesar",
-    "André Miranda",
-    "Rafael Jesuíno",
-    "Alexandre Silva",
-    "Eliezer Domingos",
-    "José Fernando",
-    "Claudia Silvia"
+    "Thiago Henrique", "Bruno Cassini", "Giovani Galindo", "Rafael Grecco",
+    "Ricardo Toledo", "Lucas Lima", "Julio Cesar", "André Miranda",
+    "Rafael Jesuíno", "Alexandre Silva", "Eliezer Domingos",
+    "José Fernando", "Claudia Silvia"
 ]
 
 CRITERIOS = [
@@ -60,7 +73,11 @@ def ciclo_atual(dt=None):
 # ============================
 # BANCO DE DADOS
 # ============================
-conn = sqlite3.connect("votacao.db")
+# << ALTERAÇÃO: O caminho do banco de dados agora é dinâmico
+data_directory = get_data_dir()
+db_path = data_directory / "votacao.db"
+conn = sqlite3.connect(db_path)
+
 cursor = conn.cursor()
 
 cursor.execute(
@@ -199,7 +216,6 @@ def abrir_tela_votacao():
     global entradas
     limpar_frames()
 
-    # ALTERAÇÃO: Limpa o frame de votação antes de recriar os widgets para evitar duplicação.
     for widget in votacao_frame.winfo_children():
         widget.destroy()
 
@@ -207,13 +223,11 @@ def abrir_tela_votacao():
     
     votacao_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-    # --- Títulos ---
     ttk.Label(votacao_frame, text=f"Votação de {mes_nome(mes_atual())}/{ano_atual()}",
               font=("Arial", 18, "bold")).pack(pady=(0, 5))
     ttk.Label(votacao_frame, text=f"Logado como: {usuario_logado}  |  Distribua entre {PONTOS_MIN} e {PONTOS_MAX} pontos",
               bootstyle="secondary").pack(pady=(0, 20))
 
-    # --- Container com Scroll ---
     canvas = Canvas(votacao_frame, borderwidth=0, highlightthickness=0)
     scroll = ttk.Scrollbar(votacao_frame, orient="vertical", command=canvas.yview)
     
@@ -226,12 +240,10 @@ def abrir_tela_votacao():
     area = ttk.Frame(container_frame)
     area.pack(expand=True, padx=80, pady=20, fill='x')
 
-    # --- Configuração do Grid na 'area' ---
     area.columnconfigure(0, weight=3)
     for i in range(1, 6):
         area.columnconfigure(i, weight=2)
 
-    # --- Cabeçalho ---
     headers = [("COLEGA", 200)] + [(c[1].upper(), 180) for c in CRITERIOS]
     for col, (text, wrap_len) in enumerate(headers):
         anchor = "w" if col == 0 else "center"
@@ -240,7 +252,6 @@ def abrir_tela_votacao():
     
     ttk.Separator(area, orient="horizontal").grid(row=1, columnspan=len(headers), pady=10, sticky="ew")
 
-    # --- Linhas de Votação ---
     usuarios_para_votar = [n for n in USUARIOS if n != usuario_logado]
     for i, nome in enumerate(usuarios_para_votar, start=2):
         entradas[nome] = {}
@@ -254,7 +265,6 @@ def abrir_tela_votacao():
             sp.grid(row=i, column=j, padx=10, pady=10)
             entradas[nome][key] = sp
             
-    # --- Botão de Envio ---
     botoes_frame = ttk.Frame(votacao_frame)
     botoes_frame.pack(pady=20)
     ttk.Button(botoes_frame, text="Enviar Votos", command=salvar_votos, bootstyle=SUCCESS, padding=(20, 10)).pack(side='left', padx=5)
@@ -265,12 +275,11 @@ def abrir_tela_votacao():
     
 
 # ============================
-# ADMIN
+# ADMIN (O restante do código permanece igual)
 # ============================
 def abrir_tela_admin():
     limpar_frames()
 
-    # ALTERAÇÃO: Limpa o frame de admin antes de recriar os widgets para evitar duplicação.
     for widget in admin_view_frame.winfo_children():
         widget.destroy()
 
@@ -452,9 +461,8 @@ def voltar_para_login():
 # ============================
 root = ttk.Window(themename="darkly")
 root.title("Sistema de Votação Interna")
-root.geometry("1100x700") # Aumentei um pouco a altura para melhor acomodação
+root.geometry("1100x700") 
 
-# Criando um estilo para o botão de admin na tela de admin
 style = ttk.Style()
 style.configure('Hover.TButton',
                   background='#212121',
@@ -467,7 +475,6 @@ style.map('Hover.TButton',
                       ('pressed', '#616161')],
           relief=[('pressed', 'sunken')])
 
-# Estilo para o botão de Usuário
 style.configure('LoginUser.TButton',
                   background='#007bff',
                   foreground='black', 
@@ -479,10 +486,8 @@ style.map('LoginUser.TButton',
                       ('pressed', '#004085')],
           foreground=[('active', 'black'),
                       ('pressed', 'black')],
-          # CORREÇÃO APLICADA AQUI
           focuscolor=[('!active', '#66afe9')]) 
 
-# Estilo para o botão de Admin
 style.configure('LoginAdmin.TButton',
                   background='#ffc107',
                   foreground='black',
@@ -494,11 +499,8 @@ style.map('LoginAdmin.TButton',
                       ('pressed', '#c69500')],
           foreground=[('active', 'black'),
                       ('pressed', 'black')],
-          # CORREÇÃO APLICADA AQUI
           focuscolor=[('!active', '#fd7e14')])
 
-
-# --- Login Usuário ---
 login_frame = ttk.Frame(root)
 login_frame.pack(pady=40) 
 
@@ -509,7 +511,6 @@ entrada_usuario.pack(pady=8)
 
 ttk.Button(login_frame, text="Entrar como Usuário", command=login_usuario, style='LoginUser.TButton', padding=(15, 8)).pack(pady=10)
 
-# --- Login Admin ---
 admin_login_frame = ttk.Frame(root)
 admin_login_frame.pack(pady=30) 
 
@@ -519,10 +520,7 @@ entrada_admin.pack(pady=8)
 
 ttk.Button(admin_login_frame, text="Entrar como Admin", command=login_admin, style='LoginAdmin.TButton', padding=(15, 8)).pack(pady=10)
 
-# --- Votação ---
 votacao_frame = ttk.Frame(root)
-
-# --- Admin View ---
 admin_view_frame = ttk.Frame(root)
 
 root.mainloop()
